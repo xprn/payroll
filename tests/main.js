@@ -1137,10 +1137,45 @@ describe('All Tests', function () {
                         .and.to.equal(false);
                 });
         });
-
     });
-    describe.skip('Access Flag API Tests', () => {
+    describe('Access Flag API Tests', () => {
+        it('should respond with a 401 Unauthorized when attempting to retrieve all access flags without specifying an access token', () => {
+            return agent.get('/api/flags')
+                .catch(err => err.response)
+                .then(res => {
+                    expect(res.status).to.equal(401);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.equal(null);
+                    expect(res.body.error).to.be.a('string')
+                        .and.to.equal('Unauthorized');
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(false);
+                });
+        });
+        it('should retrieve all the access groups', () => {
+            return agent.get('/api/flags')
+                .set('x-access-token', token)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
 
+                    expect(res.body.payload).to.be.an('array');
+                    res.body.payload.forEach(flag => {
+                        expect(flag).to.be.an('object')
+                            .and.to.have.all.keys('id', 'flag', 'name', 'description');
+                        expect(flag.id).to.be.a('string');
+                        expect(flag.flag).to.be.a('string');
+                        expect(flag.name).to.be.a('string');
+                        expect(flag.description).to.be.a('string');
+                    });
+
+                    expect(res.body.error).to.equal(null);
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(true);
+                });
+        });
     });
     describe.skip('Cached Holiday API Tests', () => {
         const YEAR    = new Date().getFullYear();
