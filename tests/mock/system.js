@@ -1,5 +1,9 @@
 const {System} = require('../../lib/sys');
 
+/**
+ * A function that creates a System instance using mock database instances.
+ * @returns {Promise.<System>} The System instance with mock database instances
+ */
 module.exports = async function () {
     const Mongoose  = require('mongoose');
     const Mockgoose = require('mockgoose').Mockgoose;
@@ -8,7 +12,7 @@ module.exports = async function () {
     const redis    = require('redis-js');
     const mongoose = Mongoose.connection;
 
-    // Promisify the mock redis connection
+    /* Promisify the mock redis connection */
     redis.getAsync  = (key) => new Promise((resolve, reject) =>
         redis.get(key, (err, data) => err ? reject(err) : resolve(data)));
     redis.setAsync  = (key, value) => new Promise((resolve, reject) =>
@@ -18,10 +22,10 @@ module.exports = async function () {
     redis.delAsync  = (a) => new Promise((resolve, reject) =>
         redis.del(a, (err, keys) => err ? reject(err) : resolve(keys)));
 
-    // Set the Promise library of mongoose to Bluebird
+    /* Set the Promise library of mongoose to Bluebird */
     Mongoose.Promise = Promise;
 
-    // Create the mock mongoose connection
+    /* Create the mock mongoose connection */
     await mockgoose.prepareStorage();
     await new Promise((resolve, reject) => {
         mongoose.on('error', err => reject(err));
