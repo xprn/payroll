@@ -61,6 +61,12 @@ const yargs    = require('yargs')
 
 const {Server, System} = require('../lib/sys');
 
+/**
+ * Creates a connection to the Redis server
+ * @param {string} host The hostname of the Redis server
+ * @param {number} port The port of the Redis server
+ * @param {number} db The database to use on the Redis server
+ */
 function connectToRedis({host = 'localhost', port = 6379, db = 0} = {}) {
     return new Promise(resolve => {
         let log = debug('payroll:redis');
@@ -100,6 +106,12 @@ function connectToRedis({host = 'localhost', port = 6379, db = 0} = {}) {
     });
 }
 
+/**
+ * Creates a connection to the MongoDB server
+ * @param {string} host The hostname of the MongoDB server
+ * @param {number} port The port of the MongoDB server
+ * @param {string} name The name of the MongoDB database to use
+ */
 function connectToMongo({host = 'localhost', port = 27017, name = 'cloudator-payroll'}) {
     return new Promise((resolve, reject) => {
         let log = debug('payroll:mongoose');
@@ -119,6 +131,11 @@ function connectToMongo({host = 'localhost', port = 27017, name = 'cloudator-pay
     });
 }
 
+/**
+ * Starts the system
+ * @param {object} argv The program argument object
+ * @returns {Promise}
+ */
 async function startSystem(argv) {
     let log = debug('payroll:main');
 
@@ -127,7 +144,7 @@ async function startSystem(argv) {
     let system   = null;
     let server   = null;
 
-    Promise.resolve()
+    return Promise.resolve()
         .then(() => connectToRedis({
             host: argv.redisHost,
             port: argv.redisPort,
@@ -151,14 +168,21 @@ async function startSystem(argv) {
         });
 }
 
+/**
+ * Starts the system setup
+ * @param {object} argv The program argument object
+ * @returns {Promise}
+ */
 async function startSystemSetup(argv) {
-    let log = debug('payroll:setup');
-    log(`Starting system setup...`);
+    return Promise.reject('Not Implemented');
 }
 
+/* Set the Mongoose Promise library to Bluebird */
 mongoose.Promise = Promise;
+/* Promisify the Redis library */
 Promise.promisifyAll(redis.RedisClient.prototype);
 Promise.promisifyAll(redis.Multi.prototype);
+/* Handle unhandled rejections */
 process.on('unhandledRejection', (function () {
     let log = debug('payroll:unresolved');
     return err => log(err);
