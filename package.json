@@ -1,0 +1,42 @@
+{
+  "name": "payroll",
+  "version": "1.0.0",
+  "description": "A payroll application for Cloudator",
+  "main": "bin/main.js",
+  "bin": {
+    "payroll": "main.js"
+  },
+  "scripts": {
+    "test": "mocha tests/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xprn/payroll.git"
+  },
+  "author": "Ragnar Laud <ragnar.laud@hotmail.com>",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/xprn/payroll/issues"
+  },
+  "homepage": "https://github.com/xprn/payroll#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "bluebird": "^3.5.0",
+    "body-parser": "^1.17.2",
+    "chai": "latest",
+    "chai-http": "latest",
+    "debug": "latest",
+    "express": "^4.15.3",
+    "jsonwebtoken": "latest",
+    "mocha": "latest",
+    "mockgoose": "^7.3.3",
+    "mongoose": "latest",
+    "path-to-regexp": "^1.7.0",
+    "qrcode": "latest",
+    "redis": "^2.7.1",
+    "redis-js": "^0.1.2",
+    "request": "latest",
+    "speakeasy": "latest",
+    "yargs": "^8.0.2"
+  }
+}
