@@ -808,13 +808,338 @@ describe('All Tests', function () {
         });
     });
     describe.skip('Access Groups API Tests', () => {
-        /**
-         * TODO: GET /api/groups
-         * TODO: POST /api/groups
-         * TODO: GET /api/groups/:group
-         * TODO: DELETE /api/groups/:group
-         */
+        let groupData       = {
+            tag:         'test_group',
+            name:        'Test Group',
+            description: 'A test access group'
+        };
+        let updateGroupData = {
+            tag:         'test_group_update',
+            name:        'Test Group Update',
+            description: 'A test access group that has been updated'
+        };
+        let group           = null;
 
+        it('should respond with a 401 Unauthorized when attempting to retrieve all access groups without specifying an access token', () => {
+            return agent.get('/api/groups')
+                .catch(err => err.response)
+                .then(res => {
+                    expect(res.status).to.equal(401);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.equal(null);
+                    expect(res.body.error).to.be.a('string')
+                        .and.to.equal('Unauthorized');
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(false);
+                });
+        });
+        it('should retrieve all the access groups', () => {
+            return agent.get('/api/groups')
+                .set('x-access-token', token)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+
+                    expect(res.body.payload).to.be.an('array');
+                    res.body.payload.forEach(group => {
+                        expect(group).to.be.an('object')
+                            .and.to.have.all.keys('id', 'tag', 'name', 'description', 'flags');
+                        expect(group.id).to.be.a('string');
+                        expect(group.tag).to.be.a('string');
+                        expect(group.name).to.be.a('string');
+                        expect(group.description).to.be.a('string');
+                        expect(group.flags).to.be.an('array');
+                        group.flags.forEach(flag => {
+                            expect(flag).to.be.an('object')
+                                .and.to.have.all.keys('id', 'flag', 'name', 'description');
+                            expect(flag.id).to.be.a('string');
+                            expect(flag.flag).to.be.a('string');
+                            expect(flag.name).to.be.a('string');
+                            expect(flag.description).to.be.a('string');
+                        });
+                    });
+
+                    expect(res.body.error).to.equal(null);
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(true);
+                })
+        });
+
+        it('should respond with a 401 Unauthorized when attempting to create a new access groups without specifying an access token', () => {
+            return agent.post('/api/groups')
+                .catch(err => err.response)
+                .then(res => {
+                    expect(res.status).to.equal(401);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.equal(null);
+                    expect(res.body.error).to.be.a('string')
+                        .and.to.equal('Unauthorized');
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(false);
+                });
+        });
+        it('should create a new access group', () => {
+            return agent.post('/api/groups')
+                .set('x-access-token', token)
+                .send(groupData)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.be.an('object')
+                        .and.to.have.all.keys('id', 'tag', 'name', 'description', 'flags');
+                    expect(res.body.payload.id).to.be.a('string');
+                    expect(res.body.payload.tag).to.be.a('string')
+                        .and.to.equal(groupData.tag);
+                    expect(res.body.payload.name).to.be.a('string')
+                        .and.to.equal(groupData.name);
+                    expect(res.body.payload.description).to.be.a('string')
+                        .and.to.equal(groupData.description);
+                    expect(res.body.payload.flags).to.be.an('array')
+                        .and.to.be.empty;
+                    expect(res.body.error).to.equal(null);
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(true);
+
+                    group = res.body.payload;
+                });
+        });
+        it('should verify that the access group exists', () => {
+            return agent.get(`/api/groups/${group.id}`)
+                .set('x-access-token', token)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.be.an('object')
+                        .and.to.have.all.keys('id', 'tag', 'name', 'description', 'flags')
+                        .and.to.deep.equal(group);
+                    expect(res.body.error).to.equal(null);
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(true);
+                });
+        });
+
+        it('should respond with a 401 Unauthorized when attempting to update the access groups without specifying an access token', () => {
+            return agent.put(`/api/groups/${group.id}`)
+                .catch(err => err.response)
+                .then(res => {
+                    expect(res.status).to.equal(401);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.equal(null);
+                    expect(res.body.error).to.be.a('string')
+                        .and.to.equal('Unauthorized');
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(false);
+                });
+        });
+        it('should update the access group', () => {
+            group.tag         = updateGroupData.tag;
+            group.name        = updateGroupData.name;
+            group.description = updateGroupData.description;
+
+            return agent.put(`/api/groups/${group.id}`)
+                .set('x-access-token', token)
+                .send(updateGroupData)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.be.an('object')
+                        .and.to.have.all.keys('id', 'tag', 'name', 'description', 'flags');
+                    expect(res.body.payload.id).to.be.a('string')
+                        .and.to.equal(group.id);
+                    expect(res.body.payload.tag).to.be.a('string')
+                        .and.to.equal(group.tag);
+                    expect(res.body.payload.name).to.be.a('string')
+                        .and.to.equal(group.name);
+                    expect(res.body.payload.description).to.be.a('string')
+                        .and.to.equal(group.description);
+                    expect(res.body.payload.flags).to.be.an('array');
+                });
+        });
+        it('should verify that the access group has been updated', () => {
+            return agent.get(`/api/groups/${group.id}`)
+                .set('x-access-token', token)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.be.an('object')
+                        .and.to.have.all.keys('id', 'tag', 'name', 'description', 'flags')
+                        .and.to.deep.equal(group);
+                    expect(res.body.error).to.equal(null);
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(true);
+                });
+        });
+
+        it('should respond with a 401 Unauthorized when attempting to assign the \'write_users\' flag to the access group without specifying an access token', () => {
+            return agent.put(`/api/groups/${group.id}/flags/write_users`)
+                .catch(err => err.response)
+                .then(res => {
+                    expect(res.status).to.equal(401);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.equal(null);
+                    expect(res.body.error).to.be.a('string')
+                        .and.to.equal('Unauthorized');
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(false);
+                });
+        });
+        it('should assign the \'write_users\' flag to the access group', () => {
+            return agent.put(`/api/groups/${group.id}/flags/write_users`)
+                .set('x-access-token', token)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.be.an('object')
+                        .and.to.have.all.keys('id', 'tag', 'name', 'description', 'flags');
+                    expect(res.body.payload.id).to.be.a('string')
+                        .and.to.equal(group.id);
+                    expect(res.body.payload.tag).to.be.a('string')
+                        .and.to.equal(group.tag);
+                    expect(res.body.payload.name).to.be.a('string')
+                        .and.to.equal(group.name);
+                    expect(res.body.payload.description).to.be.a('string')
+                        .and.to.equal(group.description);
+                    expect(res.body.payload.flags).to.be.an('array');
+
+                    let flag = res.body.payload.flags.find(flag => flag.flag === 'write_users');
+                    expect(flag).to.be.an('object')
+                        .and.to.have.all.keys('id', 'flag', 'name', 'description');
+                    expect(flag.id).to.be.a('string');
+                    expect(flag.flag).to.be.a('string');
+                    expect(flag.name).to.be.a('string');
+                    expect(flag.description).to.be.a('string');
+
+                    group.flags.push(flag);
+                });
+        });
+        it('should verify that the \'write_users\' flag has been assigned to the access group', () => {
+            return agent.get(`/api/groups/${group.id}`)
+                .set('x-access-token', token)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.be.an('object')
+                        .and.to.have.all.keys('id', 'tag', 'name', 'description', 'flags')
+                        .and.to.deep.equal(group);
+                    expect(res.body.error).to.equal(null);
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(true);
+                });
+        });
+
+        it('should respond with a 401 Unauthorized when attempting to unassign the \'write_users\' flag from the access group without specifying an access token', () => {
+            return agent.delete(`/api/groups/${group.id}/flags/write_users`)
+                .catch(err => err.response)
+                .then(res => {
+                    expect(res.status).to.equal(401);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.equal(null);
+                    expect(res.body.error).to.be.a('string')
+                        .and.to.equal('Unauthorized');
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(false);
+                });
+        });
+        it('should unassign the \'write_users\' flag from the access group', () => {
+            return agent.delete(`/api/groups/${group.id}/flags/write_users`)
+                .set('x-access-token', token)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.be.an('object')
+                        .and.to.have.all.keys('id', 'tag', 'name', 'description', 'flags');
+                    expect(res.body.payload.id).to.be.a('string')
+                        .and.to.equal(group.id);
+                    expect(res.body.payload.tag).to.be.a('string')
+                        .and.to.equal(group.tag);
+                    expect(res.body.payload.name).to.be.a('string')
+                        .and.to.equal(group.name);
+                    expect(res.body.payload.description).to.be.a('string')
+                        .and.to.equal(group.description);
+                    expect(res.body.payload.flags).to.be.an('array');
+
+                    let flag  = group.flags.find(flag => flag.flag === 'write_users');
+                    let index = group.flags.findIndex(flag => flag.flag === 'write_users');
+
+                    expect(res.body.payload.flags).to.not.deep.include(flag);
+
+                    group.flags.splice(index, 1);
+                });
+        });
+        it('should verify that the \'write_users\' flag has been unassigned from the access group', () => {
+            return agent.get(`/api/groups/${group.id}`)
+                .set('x-access-token', token)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.be.an('object')
+                        .and.to.have.all.keys('id', 'tag', 'name', 'description', 'flags')
+                        .and.to.deep.equal(group);
+                    expect(res.body.error).to.equal(null);
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(true);
+                });
+        });
+
+        it('should respond with a 401 Unauthorized when attempting to delete the access group without specifying an access token', () => {
+            return agent.delete(`/api/groups/${group.id}`)
+                .catch(err => err.response)
+                .then(res => {
+                    expect(res.status).to.equal(401);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.equal(null);
+                    expect(res.body.error).to.be.a('string')
+                        .and.to.equal('Unauthorized');
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(false);
+                });
+        });
+        it('should delete the access group', () => {
+            return agent.delete(`/api/groups/${group.id}`)
+                .set('x-access-token', token)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.equal(null);
+                    expect(res.body.error).to.equal(null);
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(true);
+                })
+        });
+        it('should verify that the access group has been deleted', () => {
+            return agent.get(`/api/groups/${group.id}`)
+                .set('x-access-token', token)
+                .catch(err => err.response)
+                .then(res => {
+                    expect(res.status).to.equal(404);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.equal(null);
+                    expect(res.body.error).to.be.a('string')
+                        .and.to.equal('Access Group not found');
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(false);
+                });
+        });
+
+    });
+    describe.skip('Access Flag API Tests', () => {
 
     });
     describe.skip('Cached Holiday API Tests', () => {
