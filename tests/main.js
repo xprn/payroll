@@ -480,7 +480,7 @@ describe('All Tests', function () {
                         });
                 });
                 it(`should remove '${setting}'`, () => {
-                    return agent.delete(`/api/system/${setting}`)
+                    return agent.delete(`/api/system/?settings=${setting}`)
                         .set('x-access-token', token)
                         .then(res => {
                             expect(res.status).to.equal(200);
@@ -553,7 +553,7 @@ describe('All Tests', function () {
                         });
                 });
                 it(`should respond with a 401 Unauthorized when attempting to delete '${setting}' without specifying an access token`, () => {
-                    return agent.delete(`/api/system/${setting}`)
+                    return agent.delete(`/api/system/?settings=${setting}`)
                         .catch(err => err.response)
                         .then(res => {
                             expect(res.status).to.equal(401);
