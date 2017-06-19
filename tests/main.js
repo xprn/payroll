@@ -1138,7 +1138,7 @@ describe('All Tests', function () {
                 });
         });
     });
-    describe('Access Flag API Tests', () => {
+    describe.skip('Access Flag API Tests', () => {
         it('should respond with a 401 Unauthorized when attempting to retrieve all access flags without specifying an access token', () => {
             return agent.get('/api/flags')
                 .catch(err => err.response)
@@ -1181,7 +1181,7 @@ describe('All Tests', function () {
         const YEAR    = new Date().getFullYear();
         const COUNTRY = 'EST';
 
-        it('should respond with a 401 Unauthorized when no access token is specified', () => {
+        it('should respond with a 401 Unauthorized when attempting to get public holidays with no access token specified', () => {
             return agent.get('/api/holidays')
                 .catch(err => err.response)
                 .then(res => {
@@ -1195,7 +1195,7 @@ describe('All Tests', function () {
                         .and.to.equal(false);
                 });
         });
-        it('should respond with a 400 Bad Request when no country is specified', () => {
+        it('should respond with a 400 Bad Request when attempting to get public holidays with no country specified', () => {
             return agent.get('/api/holidays')
                 .set('x-access-token', token)
                 .catch(err => err.response)
@@ -1211,38 +1211,182 @@ describe('All Tests', function () {
                         .and.to.equal(false);
                 });
         });
-        it(
-            `should retrieve the list of public holidays for ${YEAR} in ${COUNTRY}`
-            , () => {
-                return agent.get('/api/holidays')
-                    .query({year: YEAR, country: COUNTRY})
+        it(`should retrieve the list of public holidays for ${YEAR} in ${COUNTRY}`, () => {
+            return agent.get('/api/holidays')
+                .query({year: YEAR, country: COUNTRY})
+                .set('x-access-token', token)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.be.an('array');
+                    expect(res.body.error).to.equal(null);
+                    expect(res.body.status).to.equal(true);
+                    res.body.payload.forEach(a => {
+                        expect(a).to.be.an('object')
+                            .and.to.have.all.keys('date', 'localName', 'englishName');
+
+                        expect(a.localName).to.be.a('string');
+                        expect(a.englishName).to.be.a('string');
+
+                        expect(a.date).to.be.an('object')
+                            .and.to.have.all.keys('day', 'month', 'year', 'dayOfWeek');
+
+                        expect(a.date.day).to.be.a('number');
+                        expect(a.date.month).to.be.a('number');
+                        expect(a.date.year).to.be.a('number');
+                        expect(a.date.dayOfWeek).to.be.a('number');
+                    });
+                });
+        });
+    });
+    describe('Work Event Generation API Tests', () => {
+        const input          = {
+            name:            'John Doe',
+            holidays:        ['03/01/2017'],
+            income:          Math.floor(Math.random() * 5000),
+            work_start:      '09:00',
+            work_end:        '17:00',
+            lunch_start:     '12:00',
+            lunch_end:       '13:00',
+            work_days:       [1, 2, 3, 4, 5],
+            period:          {from: '01/01/2017', to: '07/01/2017'},
+            payment_day:     '01',
+            payment_time:    '10:00',
+            currency:        'EUR',
+            country:         'EST',
+            public_holidays: []
+        };
+        const expectedOutput = {
+            period:   {from: input.period.from, to: input.period.to},
+            employee: {
+                name:        input.name,
+                income:      input.income,
+                work_start:  input.work_start,
+                work_end:    input.work_end,
+                lunch_start: input.lunch_start,
+                lunch_end:   input.lunch_end,
+                work_days:   input.work_days
+            },
+            events:   [
+                {
+                    date:  input.payment_day + '/01/2017',
+                    time:  input.payment_time,
+                    event: 'PAYDAY',
+                    data:  {amount: input.income, currency: input.currency}
+                },
+
+                {date: '01/01/2017', time: input.work_start, event: 'ARRIVES_AT_WORK'},
+                {date: '01/01/2017', time: input.lunch_start, event: 'LEAVES_FOR_LUNCH'},
+                {date: '01/01/2017', time: input.lunch_end, event: 'ARRIVES_FROM_LUNCH'},
+                {date: '01/01/2017', time: input.work_end, event: 'LEAVES_FROM_WORK'},
+
+                {date: '02/01/2017', time: input.work_start, event: 'ARRIVES_AT_WORK'},
+                {date: '02/01/2017', time: input.lunch_start, event: 'LEAVES_FOR_LUNCH'},
+                {date: '02/01/2017', time: input.lunch_end, event: 'ARRIVES_FROM_LUNCH'},
+                {date: '02/01/2017', time: input.work_end, event: 'LEAVES_FROM_WORK'},
+
+                {
+                    date:  '03/01/2017',
+                    event: 'DAY_OFF',
+                    data:  {name: 'Personal'}
+                },
+
+                {date: '04/01/2017', time: input.work_start, event: 'ARRIVES_AT_WORK'},
+                {date: '04/01/2017', time: input.lunch_start, event: 'LEAVES_FOR_LUNCH'},
+                {date: '04/01/2017', time: input.lunch_end, event: 'ARRIVES_FROM_LUNCH'},
+                {date: '04/01/2017', time: input.work_end, event: 'LEAVES_FROM_WORK'},
+
+                {date: '05/01/2017', time: input.work_start, event: 'ARRIVES_AT_WORK'},
+                {date: '05/01/2017', time: input.lunch_start, event: 'LEAVES_FOR_LUNCH'},
+                {date: '05/01/2017', time: input.lunch_end, event: 'ARRIVES_FROM_LUNCH'},
+                {date: '05/01/2017', time: input.work_end, event: 'LEAVES_FROM_WORK'},
+
+                {date: '06/01/2017', event: 'DAY_OFF', data: {name: 'Day off'}},
+                {date: '07/01/2017', event: 'DAY_OFF', data: {name: 'Day off'}}
+            ]
+        };
+
+        before(() =>
+            expectedOutput.events = expectedOutput.events.sort((a, b) => {
+                let [f_DD, f_MM, f_YYYY] = a.date.split('/').map(n => Number(n));
+                let [t_DD, t_MM, t_YYYY] = b.date.split('/').map(n => Number(n));
+                let [f_hh, f_mm]         = (a.time || '00:00').split(':').map(n => Number(n));
+                let [t_hh, t_mm]         = (b.time || '00:00').split(':').map(n => Number(n));
+
+                // TODO: Can this be cleaned?
+                if (f_YYYY < t_YYYY) return -1;
+                else if (f_YYYY > t_YYYY) return 1;
+                else {
+                    if (f_MM < t_MM) return -1;
+                    else if (f_MM > t_MM) return 1;
+                    else {
+                        if (f_DD < t_DD) return -1;
+                        else if (f_DD > t_DD) return 1;
+                        else {
+                            if (f_hh < t_hh) return -1;
+                            else if (f_hh > t_hh) return 1;
+                            else {
+                                if (f_mm < t_mm) return -1;
+                                else if (f_mm > t_mm) return 1;
+                                else return 0;
+                            }
+                        }
+                    }
+                }
+            }));
+
+        it('should respond with a 401 Unauthorized when attempting to generate work events with no access token specified', () => {
+            return agent.post('/api/events')
+                .catch(err => err.response)
+                .then(res => {
+                    expect(res.status).to.equal(401);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.equal(null);
+                    expect(res.body.error).to.be.a('string')
+                        .and.to.equal('Unauthorized');
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(false);
+                });
+        });
+        Object.keys(input).forEach(key => {
+            let modifiedInput = Object.assign({}, input);
+            delete modifiedInput[key];
+
+            it(`should respond with a 400 Bad Request when attempting to generate work events without the '${key}' input field`, () => {
+                return agent.post('/api/events')
                     .set('x-access-token', token)
+                    .send(modifiedInput)
+                    .catch(err => err.response)
                     .then(res => {
-                        expect(res.status).to.equal(200);
+                        expect(res.status).to.equal(400);
                         expect(res.body).to.be.an('object')
                             .and.to.have.all.keys('payload', 'error', 'status');
-                        expect(res.body.payload).to.be.an('array');
-                        expect(res.body.error).to.equal(null);
-                        expect(res.body.status).to.equal(true);
-                        res.body.payload.forEach(a => {
-                            expect(a).to.be.an('object')
-                                .and.to.have.all.keys('date', 'localName', 'englishName');
-
-                            expect(a.localName).to.be.a('string');
-                            expect(a.englishName).to.be.a('string');
-
-                            expect(a.date).to.be.an('object')
-                                .and.to.have.all.keys('day', 'month', 'year', 'dayOfWeek');
-
-                            expect(a.date.day).to.be.a('number');
-                            expect(a.date.month).to.be.a('number');
-                            expect(a.date.year).to.be.a('number');
-                            expect(a.date.dayOfWeek).to.be.a('number');
-                        });
+                        expect(res.body.payload).to.be.an('array')
+                            .and.to.deep.include(`Missing required field '${key}'`);
+                        expect(res.body.error).to.be.a('string')
+                            .and.to.equal('Invalid Data');
+                        expect(res.body.status).to.be.a('boolean')
+                            .and.to.equal(false);
                     });
             });
-    });
-    describe.skip('Work Event Generation API Tests', () => {
-        // TODO This
+        });
+        it('should generate work events', () => {
+            return agent.post('/api/events')
+                .set('x-access-token', token)
+                .send(input)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.be.an('object')
+                        .and.to.have.all.keys('period', 'employee', 'events')
+                        .and.to.deep.equal(expectedOutput);
+                    expect(res.body.error).to.equal(null);
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(true);
+                });
+        });
     });
 });
