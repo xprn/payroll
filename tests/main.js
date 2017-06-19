@@ -70,7 +70,7 @@ describe('All Tests', function () {
         }).then(res => token = res.body.payload.token);
     });
 
-    describe.skip('User API Tests', () => {
+    describe('User API Tests', () => {
         let user        = null;
         let updateUser  = null;
         let createdUser = null;
@@ -388,7 +388,7 @@ describe('All Tests', function () {
                     }));
         });
     });
-    describe.skip('Platform API Tests', () => {
+    describe('Platform API Tests', () => {
         it('should retrieve all the settings', () => {
             return agent.get('/api/system')
                 .set('x-access-token', token)
@@ -568,7 +568,7 @@ describe('All Tests', function () {
                 });
             });
     });
-    describe.skip('Authentication API Tests', () => {
+    describe('Authentication API Tests', () => {
         it('should respond with a 401 Unauthorized when attempting to retrieve the user data without specifying an access token', () => {
             return agent.get('/api/auth')
                 .catch(err => err.response)
@@ -807,7 +807,7 @@ describe('All Tests', function () {
                 })
         });
     });
-    describe.skip('Access Groups API Tests', () => {
+    describe('Access Groups API Tests', () => {
         let groupData       = {
             tag:         'test_group',
             name:        'Test Group',
@@ -1138,7 +1138,7 @@ describe('All Tests', function () {
                 });
         });
     });
-    describe.skip('Access Flag API Tests', () => {
+    describe('Access Flag API Tests', () => {
         it('should respond with a 401 Unauthorized when attempting to retrieve all access flags without specifying an access token', () => {
             return agent.get('/api/flags')
                 .catch(err => err.response)
@@ -1177,7 +1177,7 @@ describe('All Tests', function () {
                 });
         });
     });
-    describe.skip('Cached Holiday API Tests', () => {
+    describe('Cached Holiday API Tests', () => {
         const YEAR    = new Date().getFullYear();
         const COUNTRY = 'EST';
 
