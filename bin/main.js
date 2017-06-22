@@ -5,10 +5,7 @@ const mongoose = require('mongoose');
 const fs       = require('fs');
 const path     = require('path');
 const yargs    = require('yargs')
-    .usage('Usage: \n  $0 <command> [options]')
-    .command(['start', 's'], 'Start the system', {}, startSystem)
-    .command('setup', 'Start the system setup', {}, startSystemSetup)
-    .demandCommand(1, 'Please specify a command')
+    .usage('Usage: \n  $0 [options]')
     .option('port', {
         describe: 'The port to bind to',
         alias:    ['p'],
@@ -136,7 +133,7 @@ function connectToMongo({host = 'localhost', port = 27017, name = 'cloudator-pay
  * @param {object} argv The program argument object
  * @returns {Promise}
  */
-async function startSystem(argv) {
+(async function startSystem(argv) {
     let log = debug('payroll:main');
 
     let redis    = null;
@@ -166,16 +163,7 @@ async function startSystem(argv) {
             log(`Unable to start system`);
             log(err);
         });
-}
-
-/**
- * Starts the system setup
- * @param {object} argv The program argument object
- * @returns {Promise}
- */
-async function startSystemSetup(argv) {
-    return Promise.reject('Not Implemented');
-}
+})(yargs);
 
 /* Set the Mongoose Promise library to Bluebird */
 mongoose.Promise = Promise;
