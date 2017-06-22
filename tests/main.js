@@ -23,6 +23,7 @@ global.disableLogging = function () {
 global.enableLogging  = function () {
     process.stdout.write = process_stdout_write;
 };
+process.on('unhandledRejection', err => console.log(err));
 
 chai.use(require('chai-http'));
 
@@ -51,11 +52,10 @@ describe('All Tests', function () {
             groups[group.tag] = group._id;
             return groups;
         }, {});
-        user   = await system._api.userController.createUser(Object.assign({}, userData,
-            {
-                password: bcrypt.hashSync(userData.password, 10),
-                group:    groups.admin
-            }));
+        user   = await system._api.userController.createUser(Object.assign({}, userData, {
+            password: bcrypt.hashSync(userData.password, 10),
+            group:    groups.admin
+        }));
         agent  = chai.request.agent(system._handler);
 
         await system.initialize();
@@ -67,9 +67,48 @@ describe('All Tests', function () {
                 secret:   user.secret.base32,
                 encoding: 'base32'
             })
-        }).then(res => token = res.body.payload.token);
+        }).then(res => token = res.body.payload.auth.token);
     });
 
+    describe('Statistics API Tests', () => {
+        it(`should respond with a 401 Unauthorized when attempting to retrieve platform statistics without specifying an access token`, () => {
+            return agent.get(`/api/statistics`)
+                .catch(err => err.response)
+                .then(res => {
+                    expect(res.status).to.equal(401);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.equal(null);
+                    expect(res.body.error).to.be.a('string')
+                        .and.to.equal('Unauthorized');
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(false);
+                });
+        });
+        it('should retrieve the platform statistics', () => {
+            return agent.get('/api/statistics')
+                .set('x-access-token', token)
+                .then(res => {
+                    expect(res.status).to.equal(200);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.be.an('array');
+                    res.body.payload.forEach(dataset => {
+                        expect(dataset).to.be.an('array');
+                        dataset.forEach(stat => {
+                            expect(stat).to.be.an('object')
+                                .and.to.have.all.keys('id', 'name', 'value');
+                            expect(stat.id).to.be.a('string');
+                            expect(stat.name).to.be.a('string');
+                            expect(stat.value).to.exist;
+                        });
+                    });
+                    expect(res.body.error).to.equal(null);
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(true);
+                })
+        });
+    });
     describe('User API Tests', () => {
         let user        = null;
         let updateUser  = null;
@@ -216,9 +255,47 @@ describe('All Tests', function () {
                 });
         });
 
+        it('should respond with a 400 Bad Request when attempting to assign an invalid flag to the user', () => {
+            return agent.put(`/api/users/${createdUser.id}/flags/invalid_flag`)
+                .set('x-access-token', token)
+                .catch(err => err.response)
+                .then(res => {
+                    expect(res.status).to.equal(400);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.equal(null);
+                    expect(res.body.error).to.equal('Invalid Access Flag');
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(false);
+                });
+        });
+        it('should respond with a 400 Bad Request when attempting to unassign an invalid flag from the user', () => {
+            return agent.delete(`/api/users/${createdUser.id}/flags/invalid_flag`)
+                .set('x-access-token', token)
+                .catch(err => err.response)
+                .then(res => {
+                    expect(res.status).to.equal(400);
+                    expect(res.body).to.be.an('object')
+                        .and.to.have.all.keys('payload', 'error', 'status');
+                    expect(res.body.payload).to.equal(null);
+                    expect(res.body.error).to.equal('Invalid Access Flag');
+                    expect(res.body.status).to.be.a('boolean')
+                        .and.to.equal(false);
+                });
+        });
+
         ['username', 'email', 'password', 'first_name', 'last_name'].forEach(field => {
             it(`should respond with a 400 Bad Request when missing the '${field}' field`, () => {
                 let userData = Object.assign({}, user);
+                let keys     = {
+                    username:   ['valid', 'unique'],
+                    email:      ['valid', 'unique'],
+                    password:   ['valid'],
+                    first_name: ['valid'],
+                    last_name:  ['valid'],
+                    group:      ['valid', 'exists']
+                };
+
                 delete userData[field];
 
                 return agent.post('/api/users')
@@ -229,8 +306,18 @@ describe('All Tests', function () {
                         expect(res.status).to.equal(400);
                         expect(res.body).to.be.an('object')
                             .and.to.have.all.keys('payload', 'error', 'status');
-                        expect(res.body.payload).to.be.an('array')
-                            .and.to.deep.contain(`Missing required field '${field}'`);
+                        expect(res.body.payload).to.be.an('object')
+                            .and.to.have.all.keys('username', 'email', 'password', 'first_name', 'last_name', 'group');
+                        Object.entries(res.body.payload).forEach(([field, data]) => {
+                            expect(data).to.be.an('object')
+                                .and.to.have.all.keys(...keys[field]);
+                            keys[field].forEach(key =>
+                                expect(data[key]).to.be.a('boolean'));
+                        });
+                        keys[field].forEach(key =>
+                            expect(res.body.payload[field][key]).to.be.a('boolean')
+                                .and.to.equal(false));
+
                         expect(res.body.error).to.be.a('string')
                             .and.to.equal('Invalid Data');
                         expect(res.body.status).to.be.a('boolean')
@@ -434,7 +521,7 @@ describe('All Tests', function () {
                             expect(res.body).to.be.an('object')
                                 .and.to.have.all.keys('payload', 'error', 'status');
                             expect(res.body.payload).to.be.an('object')
-                                .and.to.have.all.keys(setting);
+                                .and.to.have.any.keys(setting);
                             expect(res.body.payload[setting]).to.be.a('string').and.equal(value);
                             expect(res.body.error).to.equal(null);
                         });
@@ -448,7 +535,7 @@ describe('All Tests', function () {
                             expect(res.body).to.be.an('object')
                                 .and.to.have.all.keys('payload', 'error', 'status');
                             expect(res.body.payload).to.be.an('object')
-                                .and.to.have.all.keys(setting);
+                                .and.to.have.any.keys(setting);
                             expect(res.body.payload[setting]).to.be.a('string').and.equal(value);
                             expect(res.body.error).to.equal(null);
                         });
@@ -461,8 +548,11 @@ describe('All Tests', function () {
                             expect(res.body).to.be.an('object')
                                 .and.to.have.all.keys('payload', 'error', 'status');
                             expect(res.body.payload).to.be.an('object')
-                                .and.to.have.all.keys(setting);
-                            expect(res.body.payload[setting]).to.be.a('string').and.equal(value + value);
+                                .and.to.have.all.keys('setting', 'value');
+                            expect(res.body.payload.setting).to.be.a('string')
+                                .and.to.equal(setting);
+                            expect(res.body.payload.value).to.be.a('string')
+                                .and.to.equal(value + value);
                             expect(res.body.error).to.equal(null);
                         });
                 });
@@ -486,7 +576,8 @@ describe('All Tests', function () {
                             expect(res.status).to.equal(200);
                             expect(res.body).to.be.an('object')
                                 .and.to.have.all.keys('payload', 'error', 'status');
-                            expect(res.body.payload).to.equal(null);
+                            expect(res.body.payload).to.be.an('array')
+                                .and.to.deep.include(setting);
                             expect(res.body.error).to.equal(null);
                             expect(res.body.status).to.be.a('boolean')
                                 .and.to.equal(true);
@@ -708,7 +799,7 @@ describe('All Tests', function () {
                         .and.to.have.all.keys('payload', 'error', 'status');
 
                     expect(res.body.payload).to.be.an('object')
-                        .and.to.have.all.keys('id', 'username', 'email', 'first_name', 'last_name', 'group', 'flags', 'token');
+                        .and.to.have.all.keys('id', 'username', 'email', 'first_name', 'last_name', 'group', 'flags', 'auth');
                     expect(res.body.payload.id).to.be.a('string')
                         .and.to.equal(user._id.toString());
                     expect(res.body.payload.username).to.be.a('string')
@@ -746,7 +837,10 @@ describe('All Tests', function () {
                             .and.to.equal(_flag.description);
                     });
 
-                    expect(res.body.payload.token).to.be.a('string');
+                    expect(res.body.payload.auth).to.be.an('object')
+                        .and.to.have.all.keys('token', 'expires');
+                    expect(res.body.payload.auth.token).to.be.a('string');
+                    expect(res.body.payload.auth.expires).to.be.a('number');
                 })
         });
         it('should generate an access token when specifying the email as the login', () => {
@@ -765,7 +859,7 @@ describe('All Tests', function () {
                         .and.to.have.all.keys('payload', 'error', 'status');
 
                     expect(res.body.payload).to.be.an('object')
-                        .and.to.have.all.keys('id', 'username', 'email', 'first_name', 'last_name', 'group', 'flags', 'token');
+                        .and.to.have.all.keys('id', 'username', 'email', 'first_name', 'last_name', 'group', 'flags', 'auth');
                     expect(res.body.payload.id).to.be.a('string')
                         .and.to.equal(user._id.toString());
                     expect(res.body.payload.username).to.be.a('string')
@@ -803,7 +897,10 @@ describe('All Tests', function () {
                             .and.to.equal(_flag.description);
                     });
 
-                    expect(res.body.payload.token).to.be.a('string');
+                    expect(res.body.payload.auth).to.be.an('object')
+                        .and.to.have.all.keys('token', 'expires');
+                    expect(res.body.payload.auth.token).to.be.a('string');
+                    expect(res.body.payload.auth.expires).to.be.a('number');
                 })
         });
     });
