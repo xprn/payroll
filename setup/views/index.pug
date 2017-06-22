@@ -1,0 +1,142 @@
+doctype html
+html(lang='en')
+    head
+        meta(charset='utf-8')
+        title Payroll Setup
+        link(rel='stylesheet' href='/css/bootstrap.min.css')
+        link(rel='stylesheet' href='/css/tether.min.css')
+        link(rel='stylesheet' href='/css/font-awesome.min.css')
+        link(rel='stylesheet' href='/css/sweetalert.css')
+        link(rel='stylesheet' href='/css/app.css')
+    body
+        .jumbotron
+            h1.text-center
+                | Thank you for using
+                strong  Payroll
+                small  by Cloudator
+        .container.hidden(data-container="setup" data-setup="0")
+            .row
+                .col.col-12.col-md-6.text-center
+                    h3 Welcome to the platform setup!
+                    p
+                        | Make sure that you have everything required installed.
+                        span.hidden-sm-down You can see a list of required software on the right.
+                        span.hidden-md-up You can see a list of required software below.
+                .col.col-12.col-md-6
+                    table.table.table-bordered
+                        tbody
+                            tr
+                                td Node.js
+                                td
+                                    if locals.versions.node
+                                        span.badge.badge-success v#{locals.versions.node.major}.#{locals.versions.node.minor}.#{locals.versions.node.patch}
+                                    else
+                                        span.badge.badge-danger Not Installed
+                                        a.btn.btn-primary.btn-sm.float-right(href='https://www.nodejs.org/')
+                                            i.fa.fa-download
+                                            |  Download
+                            tr
+                                td MongoDB
+                                td
+                                    if locals.versions.mongo
+                                        span.badge.badge-success v#{locals.versions.mongo.major}.#{locals.versions.mongo.minor}.#{locals.versions.mongo.patch}
+                                    else
+                                        span.badge.badge-danger Not Installed
+                                        a.btn.btn-primary.btn-sm.float-right(href='https://www.mongodb.com/')
+                                            i.fa.fa-download
+                                            |  Download
+                            tr
+                                td Redis
+                                td
+                                    if locals.versions.redis
+                                        span.badge.badge-success v#{locals.versions.redis.major}.#{locals.versions.redis.minor}.#{locals.versions.redis.patch}
+                                    else
+                                        span.badge.badge-danger Not Installed
+                                        a.btn.btn-primary.btn-sm.float-right(href='https://www.redis.io/')
+                                            i.fa.fa-download
+                                            |  Download
+            .row: hr
+            if locals.versions.node && locals.versions.mongo && locals.versions.redis
+                .row
+                    .col.col-4.offset-4
+                        button.btn.btn-lg.btn-block.btn-primary(type='button' data-click='setup-next') Begin setup
+            else
+                .row
+                    .col.col-4.offset-4
+                        a.btn.btn-lg.btn-block.btn-primary.disabled(href='#' disabled='disabled') Begin setup
+                        br
+                .row
+                    .col.col-10.offset-1
+                        .alert.alert-danger.text-center
+                            strong You do not have all the required dependencies installed. #[br]
+                            | Please install all the needed software to continue
+        .container.hidden(data-container="setup" data-setup="1")
+            .row.justify-content-center: h1 MongoDB Setup
+            .row: hr
+            .row
+                .col.col-12.col-sm-10.col-lg-6.offset-0.offset-sm-1.offset-lg-3
+                    form(data-setup-form='mongo-test')
+                        .form-group
+                            label(for='mongo-hostname') Hostname
+                            input#mongo-hostname.form-control(type='text' placeholder='MongoDB Hostname', value='localhost')
+                        .form-group
+                            label(for='mongo-port') Port
+                            input#mongo-port.form-control(type='number' placeholder='MongoDB Port', value='27017')
+                        .form-group
+                            label(for='mongo-db') Database
+                            input#mongo-db.form-control(type='text' placeholder='Mongo Database', value='payroll')
+                        .form-group
+                            button.btn.btn-primary.btn-lg.btn-block(type='button' data-click='setup-test-mongo') Test connection
+                        .form-group
+                            button.btn.btn-primary.btn-lg.btn-block.disabled(type='button' data-click='setup-next' disabled) Continue
+        .container.hidden(data-container="setup" data-setup="2")
+            .row.justify-content-center: h1 Redis Setup
+            .row: hr
+            .row
+                .col.col-12.col-sm-10.col-lg-6.offset-0.offset-sm-1.offset-lg-3
+                    form(data-setup-form='redis-test')
+                        .form-group
+                            label(for='redis-hostname') Hostname
+                            input#redis-hostname.form-control(type='text' placeholder='Redis Hostname', value='localhost')
+                        .form-group
+                            label(for='redis-port') Port
+                            input#redis-port.form-control(type='number' placeholder='Redis Port', value='6379')
+                        .form-group
+                            label(for='redis-db') Database
+                            input#redis-db.form-control(type='number' placeholder='Redis Database', value='0')
+                        .form-group
+                            button.btn.btn-primary.btn-lg.btn-block(type='button' data-click='setup-test-redis') Test connection
+                        .form-group
+                            button.btn.btn-primary.btn-lg.btn-block.disabled(type='button' data-click='setup-next' disabled) Continue
+        .container.hidden(data-container='setup' data-setup='3')
+            .row.justify-content-center: h1 Root administrator creation
+            .row: hr
+            .row
+                .col.col-12.col-sm-10.col-lg-6.offset-0.offset-sm-1.offset-lg-3
+                    form(data-setup-form='root-creation')
+                        .form-group
+                            label(for='root-username') Username
+                            input#root-username.form-control(type='text' placeholder='Username' value='root')
+                        .form-group
+                            label(for='root-email') Email
+                            input#root-email.form-control(type='email' placeholder='Email')
+                        .form-group
+                            label(for='root-password') Password
+                            input#root-password.form-control(type='password' placeholder='Password')
+                        .form-group
+                            label(for='root-first-name') First name
+                            input#root-first-name.form-control(type='text' placeholder='First name')
+                        .form-group
+                            label(for='root-last-name') Last name
+                            input#root-last-name.form-control(type='text' placeholder='Last name')
+                        .form-group
+                            button.btn.btn-primary.btn-lg.btn-block(type='button' data-click='setup-create-root') Create root
+        .container.hidden(data-container='setup' data-setup='4')
+            .row.justify-content-center: h1 Setup complete!
+            .row: hr
+            .row.justify-content-center: h3 You can now stop the setup server and start the application.
+        script(src='/js/jquery.min.js')
+        script(src='/js/tether.min.js')
+        script(src='/js/bootstrap.min.js')
+        script(src='/js/sweetalert.min.js')
+        script(src='/js/app.js')
