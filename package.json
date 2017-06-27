@@ -57,6 +57,7 @@
     "gulp-rename": "^1.2.2",
     "gulp-sourcemaps": "^2.6.0",
     "gulp-uglify": "^3.0.0",
-    "gulp-watch": "^4.3.11"
+    "gulp-watch": "^4.3.11",
+    "opn": "^5.1.0"
   }
 }
