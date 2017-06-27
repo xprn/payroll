@@ -1,0 +1,100 @@
+[
+    {
+        "route": "/",
+        "view": "/landing",
+        "title": "Payroll by Cloudator"
+    },
+    {
+        "route": "/about",
+        "view": "/landing/about",
+        "title": "About - Payroll by Cloudator"
+    },
+    {
+        "route": "/pricing",
+        "view": "/landing/pricing",
+        "title": "Pricing - Payroll by Cloudator"
+    },
+    {
+        "route": "/features",
+        "view": "/landing/features",
+        "title": "Features - Payroll by Cloudator"
+    },
+    {
+        "route": "/sign-up",
+        "view": "/dashboard/sign-up",
+        "title": "Sign Up - Payroll by Cloudator",
+        "require_auth": "not-authenticated"
+    },
+    {
+        "route": "/sign-in",
+        "view": "/dashboard/sign-in",
+        "title": "Sign In - Payroll by Cloudator",
+        "require_auth": "not-authenticated"
+    },
+    {
+        "route": "/dashboard",
+        "view": "/dashboard",
+        "title": "Dashboard - Payroll",
+        "require_auth": "authenticated"
+    },
+    {
+        "route": "/dashboard/users",
+        "view": "/dashboard",
+        "title": "Dashboard - Payroll",
+        "require_auth": "authenticated"
+    },
+    {
+        "route": "/dashboard/groups",
+        "view": "/dashboard",
+        "title": "Dashboard - Payroll",
+        "require_auth": "authenticated"
+    },
+    {
+        "route": "/dashboard/flags",
+        "view": "/dashboard",
+        "title": "Dashboard - Payroll",
+        "require_auth": "authenticated"
+    },
+    {
+        "route": "/dashboard/system",
+        "view": "/dashboard",
+        "title": "Dashboard - Payroll",
+        "require_auth": "authenticated"
+    },
+    {
+        "route": "/dashboard/holidays",
+        "view": "/dashboard",
+        "title": "Dashboard - Payroll",
+        "require_auth": "authenticated"
+    },
+    {
+        "route": "/dashboard/events",
+        "view": "/dashboard",
+        "title": "Dashboard - Payroll",
+        "require_auth": "authenticated"
+    },
+    {
+        "route": "/dashboard/users/create",
+        "view": "/dashboard",
+        "title": "Dashboard - Payroll",
+        "require_auth": "authenticated"
+    },
+    {
+        "route": "/dashboard/users/view/{id}",
+        "view": "/dashboard",
+        "title": "Dashboard - Payroll",
+        "require_auth": "authenticated"
+    },
+    {
+        "route": "/dashboard/groups/create",
+        "view": "/dashboard",
+        "title": "Dashboard - Payroll",
+        "require_auth": "authenticated"
+    },
+    {
+        "route": "/dashboard/groups/view/{id}",
+        "view": "/dashboard",
+        "title": "Dashboard - Payroll",
+        "require_auth": "authenticated"
+    }
+]

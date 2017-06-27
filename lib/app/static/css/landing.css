@@ -1,0 +1,58 @@
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+nav > .nav-wrapper > ul > li > a {
+    color: #494949;
+    background-color: transparent;
+}
+
+nav > .nav-wrapper > ul > li.active > a,
+nav > .nav-wrapper > ul > li > a:hover {
+    color: #ffffff;
+    background-color: #ff6e40;
+}
+
+.pricing {
+    padding: 0 !important;
+}
+
+.pricing > .pricing-text {
+    margin: 0;
+    padding: 0.5em 0
+}
+
+.pricing > .pricing-price {
+    margin: 0;
+    padding: 0.3em 0
+}
+
+.pricing-features > li {
+    display: block;
+    width: 100%;
+    padding: 1.2rem 2rem;
+}
+
+.pricing-features > li:nth-child(odd) {
+    background-color: transparent !important;
+}
+
+table.features > tbody > tr > td {
+    border-radius: 0 !important;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+[data-show] {
+    display: none;
+}

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1.0" name="viewport">
+    <title>Payroll by Cloudator</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="/libs/materialize/css/materialize.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+    <link href="/css/landing.css" rel="stylesheet">
+</head>
+<body>
+<nav class="black-text white" role="navigation">
+    <div class="nav-wrapper container">
+        <a class="brand-logo deep-orange-text" href="/" id="logo-container"><strong>Payroll</strong></a>
+        <ul class="right hide-on-med-and-down">
+            <li>
+                <a href="/">Home</a>
+            </li>
+            <li data-show="auth:fail">
+                <a href="/about">About</a>
+            </li>
+            <li data-show="auth:fail">
+                <a href="/pricing">Pricing</a>
+            </li>
+            <li data-show="auth:fail">
+                <a href="/features">Features</a>
+            </li>
+
+            <li data-show="auth:fail">
+                <a class="btn deep-orange white-text" href="/sign-up">Sign Up</a>
+            </li>
+            <li data-show="auth:fail">
+                <a class="btn deep-orange white-text" href="/sign-in">Sign In</a>
+            </li>
+            <li data-show="auth:ok">
+                <a href="/profile">
+                    <span data-bind="auth:user:first_name"></span> <span data-bind="auth:user:last_name"></span>
+                </a>
+            </li>
+        </ul>
+        <ul class="side-nav" id="nav-mobile">
+            <li data-show="auth:fail">
+                <a class="btn deep-orange white-text" href="/sign-up">Sign Up</a>
+            </li>
+            <li data-show="auth:fail">
+                <a class="btn deep-orange white-text" href="/sign-in">Sign In</a>
+            </li>
+
+            <li data-show="auth:ok">
+                <a href="/profile">
+                    <span data-bind="auth:user:first_name"></span> <span data-bind="auth:user:last_name"></span>
+                </a>
+            </li>
+
+            <li>
+                <a href="/">Home</a>
+            </li>
+            <li data-show="auth:fail">
+                <a href="/about">About</a>
+            </li>
+            <li data-show="auth:fail">
+                <a href="/pricing">Pricing</a>
+            </li>
+            <li data-show="auth:fail">
+                <a href="/features">Features</a>
+            </li>
+        </ul>
+        <a class="black-text button-collapse" data-activates="nav-mobile" href="#"><i
+                class="material-icons">menu</i></a>
+    </div>
+</nav>
+<main id="view"></main>
+<footer class="page-footer grey darken-2">
+    <div class="container">
+        <div class="row">
+            <div class="col l6 s12">
+                <h5 class="white-text"><strong>Payroll</strong> by Cloudator</h5>
+                <p class="grey-text text-lighten-4">
+                    <strong>Payroll</strong> makes it easier for employers and employees to keep track of their
+                    schedules, salaries, and much more!
+                    <br> <br>
+                    <a class="btn waves-effect waves-light white-text deep-orange accent-3" href="/about">
+                        Learn More
+                    </a>
+                </p>
+            </div>
+            <div class="col l3 s12">
+                <h5 class="white-text">Organization</h5>
+                <ul>
+                    <li>
+                        <a class="white-text" href="http://www.cloudator.com">Cloudator</a>
+                    </li>
+                    <li>
+                        <a class="white-text" href="http://www.cloudator.com/payroll.html">Cloudator Payroll</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col l3 s12">
+                <h5 class="white-text">Developer</h5>
+                <ul>
+                    <li>
+                        <a class="white-text" href="https://ragnarlaud.me">Homepage</a>
+                    </li>
+                    <li>
+                        <a class="white-text" href="https://redirect.ragnarlaud.me/github">Github</a>
+                    </li>
+                    <li>
+                        <a class="white-text" href="https://redirect.ragnarlaud.me/linkedin">LinkedIn</a>
+                    </li>
+                    <li>
+                        <a class="white-text" href="https://redirect.ragnarlaud.me/skype">Skype</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="footer-copyright darken-3">
+        <div class="container">
+            <span class="grey-text text-lighten-2">Made by</span>
+            <a class="white-text" href="https://ragnarlaud.me">
+                <strong>Ragnar Laud</strong>
+            </a>
+            <span class="right">
+                <strong>Disclaimer!</strong> This is not the real Payroll app
+            </span>
+        </div>
+    </div>
+</footer>
+<script src="/libs/jquery/jquery.min.js"></script>
+<script src="/libs/materialize/js/materialize.js"></script>
+<script src="/js/bundle.js"></script>
+</body>
+</html>
